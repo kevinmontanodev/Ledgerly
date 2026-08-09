@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f5f4;
+  --background: #fff;
   --foreground: #171717;
 }
 
@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #edededed; 
+    --background: #fff; 
     --foreground: #ededed;
   }
 }
@@ -30,11 +30,33 @@ html {
   scrollbar-gutter: stable;
 }
 
+
+@keyframes appear {
+  0% {
+    scale: 0.6;
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.appear {
+  animation: appear  0.4s ease-in;
+}
+
 :root {
   view-transition-name: none;
 }
 ::view-transition {
   pointer-events: none;
+}
+
+::view-transition-group(.memberRow){
+  animation-duration: 0.8s;
 }
 
 ::view-transition-group(.vt-element-animation),
@@ -48,9 +70,10 @@ html {
 ::view-transition-old(.vt-element-animation-closing),
 ::view-transition-new(.vt-element-animation-closing) {
   height: 100%;
-  min-height: 100%;
+  width: 100%;
   overflow: clip;
-  object-position: left top;
+  object-fit: cover;
+  object-position: center;
 }
 
 
@@ -70,11 +93,33 @@ html {
   animation: vt-fade-out 200ms both cubic-bezier(0.38, 0.49, 0, 1);
 }
 ::view-transition-new(.vt-element-animation) {
-  animation: vt-fade-in 200ms both cubic-bezier(0.38, 0.49, 0, 1);
+  animation: vt-fade-in 700ms both cubic-bezier(0.38, 0.49, 0, 1);
 }
 ::view-transition-old(.vt-element-animation-closing) {
-  animation: vt-fade-out 200ms both cubic-bezier(0.75, 0, 0.41, -0.06);
+  animation: vt-fade-out 300ms both cubic-bezier(0.75, 0, 0.41, -0.06);
 }
 ::view-transition-new(.vt-element-animation-closing) {
   animation: vt-fade-in 200ms both cubic-bezier(0.75, 0, 0.41, -0.06);
+}
+
+
+@keyframes modalSlideDown {
+  from {
+    transform: translateY(0);
+    scale: 1;
+    opacity: 1;
+  }
+  to {
+    transform: translateY(400px);
+    scale: 0.5;
+    opacity: 0;
+  }
+}
+
+::view-transition-old(vt-modal-down) {
+  animation: modalSlideDown 0.6s cubic-bezier(0.32, 0.94, 0.6, 1) forwards;
+}
+
+::view-transition-new(vt-modal-down) {
+  animation: none;
 }

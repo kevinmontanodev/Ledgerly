@@ -6,42 +6,58 @@ import { Transaction } from "./icons/Transaction";
 import { Setting } from "./icons/Settings";
 import { AccountCatalog } from "./icons/AccountCatalog";
 import { Report } from "./icons/Report";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NavbarMenuIcon } from "./icons/NavbarMenuIcon";
+import { useCurrentProjectStore } from "@/store/useCurrentProjectStore";
 
-const navItems = [
+const getNavItems = (projectId:string) => [
     {
-        url: '/dashboard',
+        url: `/projects/${projectId}`,
         icon: <DashBoard/>,
         name: 'Dashboard'
     },
     {
-        url: '/transaction',
+        url: `/projects/${projectId}/transaction`,
         name: 'Transactions',
         icon: <Transaction/>
     },
     {
-        url: '/journal',
+        url: `/projects/${projectId}/journal`,
         name: 'Journal',
         icon: <AccountCatalog/>
     },
     {
-        url: '/catalog',
+        url: `/projects/${projectId}/catalog`,
         name: 'Catalog',
         icon: <AccountCatalog/>
     },
     {
-        url: '/report',
+        url: `/projects/${projectId}report`,
         name: 'Reports',
         icon: <Report/>
     }
 ]
 
 export function Navbar(){
-    const pathname = usePathname()
     const [showNav, setShowNav] = useState(false)
     const ref= useRef<HTMLElement>(null)
+    const params = useParams<{ projectId?: string }>()
+    const pathname = usePathname()
+
+    const storeProject = useCurrentProjectStore((state) => state.currentProject)
+
+    const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
+
+    useEffect(() => {
+        const loadLocalState = async () => {
+            setActiveProjectId(storeProject?.id || params.projectId || null)
+        }
+
+        loadLocalState()
+    }, [storeProject, params.projectId])
+    
+    const items = activeProjectId ? getNavItems(activeProjectId) : []    
 
     useEffect(() => {
         const closeNav = () => {
@@ -67,8 +83,8 @@ export function Navbar(){
     }, [showNav])
 
     return (
-        <div className="relative transition-all duration-300 h-screen">
-            <nav className="w-auto p-2 transition-all duration-300 fixed md:relative z-50" ref={ref}>
+        <div className="[grid-area:aside] relative transition-all duration-300 h-screen bg-white">
+            <nav className="w-auto p-2 transition-all duration-300 fixed left-0 top-0 md:relative z-50" ref={ref}>
                 <h1 className="w-0 opacity-0 hidden md:w-44 md:opacity-100 md:flex text-2xl p-4 font-semibold">Ledgerly</h1>
                 <div className="pt-2 pl-2.5 md:pt-0 md:pl-0">
                     
@@ -77,7 +93,7 @@ export function Navbar(){
                     </button>
                     
                     <ul className={`${showNav ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} bg-white p-2 rounded-2xl md:bg-transparent md:scale-100 md:opacity-100 origin-top-left transition-all duration-300 `}>
-                        {navItems.map(item => (
+                        {items.map(item => (
                             <li key={item.name}>
                                 <NavItem current={pathname === item.url} url={item.url}>
                                     {item.icon} 
@@ -97,6 +113,6 @@ export function Navbar(){
                 </div>
                 
             </nav>
-          </div>
+        </div>
     )
 }

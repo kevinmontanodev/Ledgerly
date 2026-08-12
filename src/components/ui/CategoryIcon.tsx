@@ -1,5 +1,5 @@
-import { CategoryConfig } from "@/utils/TransactionCategoryIcons"
-import { AccountTypesConfig } from "@/utils/AccountTypeIcons"
+import { CategoryConfig } from "@/utils/transactionCategoryIcons"
+import { AccountTypesConfig } from "@/utils/accountTypeIcons"
 
 export function CategoryIcon ({categoryName, className, accountIcons}: {categoryName: string, className?:string, accountIcons?:boolean}) {
     const config = accountIcons ?

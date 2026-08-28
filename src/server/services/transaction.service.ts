@@ -54,6 +54,7 @@ export class TransactionService {
     }
 
     // get actual project capital
+    // todo: improve function typing
     async getTotalCapital(projectId: string){
         let totalActive = 0
         let totalPasive = 0
@@ -120,6 +121,17 @@ export class TransactionService {
         }))
     }
 
+    private toEntryDTO(entries: RawEntry[]) : EntryDTO[] {
+        return entries.map(en => ({
+            id: en.id,
+            accountId: en.accountId,
+            amount: Number(en.amount),
+            transactionId: en.transactionId,
+            type: en.type,
+            accountName: en.account.name
+        }))
+    }
+
     private toTransactionDTO(tx: TransactionRecord) : TransactionDTO {
         const entriesDTO = this.toEntryDTO(tx.entries)
 
@@ -135,7 +147,7 @@ export class TransactionService {
     }
 
     private toTransactionDTOArray(transactions: TransactionRecord[]){
-        return transactions.map(this.toTransactionDTO)
+        return transactions.map(tx => this.toTransactionDTO(tx))
     }
 
     // validate the  Double Partide
@@ -170,15 +182,6 @@ export class TransactionService {
         return {fail, failsIds}
     } 
 
-    private toEntryDTO(entries: RawEntry[]) : EntryDTO[] {
-        return entries.map(en => ({
-            id: en.id,
-            accountId: en.accountId,
-            amount: Number(en.amount),
-            transactionId: en.transactionId,
-            type: en.type,
-            accountName: en.account.name
-        }))
-    }
+    
 
 }

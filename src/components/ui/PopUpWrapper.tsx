@@ -1,107 +1,77 @@
 'use client'
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
-import { ReactNode, useEffect, useRef, useState } from "react"
-
-export function PopUpWrapper({trigger, content, triggerStyles, contentStyles, title, closeOnContentClick}: {trigger: ReactNode, content:ReactNode, triggerStyles?:string, contentStyles?:string, title?:string, closeOnContentClick: boolean}){
-    const [show,setShow] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
-    const popUpRef = useRef<HTMLDivElement>(null)
-    const originElementRef = useRef<HTMLButtonElement>(null)
-    const viewTransitionClass = "vt-element-animation";
-    const viewTransitionClassClosing = "vt-element-animation-closing"
-
-    useEffect(() => {
-        if (!show) return
-    
-        const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)){
-                setShow(false)
-            }
-        }
-        
-        document.addEventListener('mousedown', handleClickOutside)
-    
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
-        }
-    }, [show])
-    
-    const togglePopUp = async () => {
-        const originElement = originElementRef.current
-
-        if (!document.startViewTransition) {
-            setShow(!show)
-            return
-        }
-
-        if (!popUpRef.current || !originElement) return
-
-        const popUp = popUpRef.current
-
-        popUp.style.viewTransitionName = "vt-shared"
-        popUp.style.viewTransitionClass = viewTransitionClass
-
-        originElement.style.viewTransitionName = "vt-shared"
-        originElement.style.viewTransitionClass = viewTransitionClass
-        originElement.setAttribute("origin-element", "")
-
-        const transition = document.startViewTransition(() => {
-            originElement.style.viewTransitionName = ""
-            originElement.style.viewTransitionClass = ""
-
-            setShow(!show)
-        })
-
-        await transition.finished
-
-        popUp.style.viewTransitionName = ""
-        popUp.style.viewTransitionClass = ""
-    }
-
-    const closePopUp = async () => {
-        const originElement = originElementRef.current
-
-        if (!popUpRef.current || !originElement) return
-
-        const popUp = popUpRef.current
-
-        popUp.style.viewTransitionName = "vt-shared"
-        popUp.style.viewTransitionClass = viewTransitionClassClosing
-
-        const transition = document.startViewTransition(() => {
-            originElement.style.viewTransitionName = "vt-shared"
-            originElement.style.viewTransitionClass = viewTransitionClassClosing
-
-            popUp.style.viewTransitionName = ""
-            popUp.style.viewTransitionClass = ""
-
-            setShow(false)
-        })
-
-        await transition.finished
-
-        originElement.style.viewTransitionName = ""
-        originElement.style.viewTransitionClass = ""
-        originElement.removeAttribute("origin-element")
-    }
-
-
-    return (
-        <div className="relative" ref={containerRef}>
-            <button className={`${triggerStyles} cursor-pointer`} ref={originElementRef} onClick={togglePopUp}>
-                {trigger}
-            </button>
-
-            <div className={`${contentStyles} absolute ${show ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} origin-top-right transition-all duration-300`} 
-            ref={popUpRef} 
-            onClick={(e) => {
-                e.stopPropagation()
-                if (closeOnContentClick) closePopUp()
-            }}>
-                <div>
-                    {content}
-                </div>
-            </div>
-        </div>
-    )
+interface PopUpProps {
+  id: string; // ID único para que sepa de dónde "nace"
+  trigger: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  center: boolean;
+  closeOnClickContent:boolean
 }
+
+export function PopUpWrapper({ id, trigger, children, className, center, closeOnClickContent }: PopUpProps) {
+    const [open, setOpen] = useState(false)
+  return (
+    <div className="relative inline-block">
+      
+      {/* TRIGGER: El punto de origen */}
+      <motion.div
+        layoutId={`pop-${id}`}
+        onClick={() => setOpen(!open)}
+        className="cursor-pointer"
+      >
+        {trigger}
+      </motion.div>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* BACKDROP: Solo lo mostramos si centramos (para enfoque modal) */}
+            
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setOpen(false)}
+                className={`fixed inset-0 z-40 ${center ? 'bg-black/10 backdrop-blur-[2px]' : 'bg-transparent'}`}
+              />
+            
+
+            {/* CONTENIDO */}
+            <motion.div
+              layoutId={`pop-${id}`}
+              className={`
+                z-50 bg-white shadow-xl rounded-2xl overflow-hidden
+                ${center ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-92" : "absolute top-0 left-0 min-w-full"}
+                ${className}
+              `}
+              // Curva de transición estilo "Ease-Out" (más natural que el rebote)
+              transition={{
+                type: "tween",
+                ease: [0.4, 0, 0.2, 1],
+                duration: 0.35
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className=""
+                onClick={() => {
+                    if (closeOnClickContent) {
+                        setOpen(false)
+                    }
+                }}
+              >
+                {children}
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+

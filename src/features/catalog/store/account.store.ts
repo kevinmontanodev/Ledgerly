@@ -10,6 +10,8 @@ type AccountStore = {
     removeAccount: (id:string) => void,
     restoreAccount: (data: AccountDTO) => void
     getAccountById: (id:string) => AccountDTO | undefined
+	getAccountByName: (name: string) => AccountDTO | undefined
+	getAccountByCode: (code: string) => AccountDTO | undefined
 
     
     saveDraft: () => void
@@ -24,6 +26,14 @@ export const useAccountStore = create<AccountStore>((set, get) => ({
 
 	getAccountById: (id) => {
 		return get().accounts.find((acc) => acc.id === id)
+	},
+
+	getAccountByCode: (code) => {
+		return get().accounts.find((acc) => acc.code === code)
+	},
+
+	getAccountByName: (name) => {
+		return get().accounts.find((acc) => acc.name.toLowerCase() === name.toLowerCase())
 	},
 
 	startDraft: (acc) => {
